@@ -31,92 +31,101 @@ Don't use when:
 5. Create TodoWrite grouped by wave
 6. Display wave breakdown to user
 
-### Phase 2: Implementation Wave
+### Phase 2: Automated Wave Execution
 
-- Dispatch up to 20 implementation subagents in parallel (one per task)
-- Each uses `./implementer-prompt.md` template with ULTRATHINK
-- Each subagent: research → TDD → implement → test → commit
-- Wait for ALL subagents to complete before proceeding
-- Mark all wave tasks as in_progress, then completed
+**This is a FULLY AUTOMATED cycle. NO manual intervention.**
 
-### Phase 3: Code Review Wave
+For each wave:
 
-- Dispatch SINGLE code-reviewer subagent (needs holistic view)
-- Uses `superpowers:requesting-code-review` skill
-- Runs full test suite (`{TEST_COMMAND}` from plan)
-- Checks for false positive tests
-- Validates wave dependencies (no conflicts)
-- Standard code quality review
-- **DOES NOT FIX - ONLY REPORTS**
-- Uses **ULTRATHINK**
-- Returns: Test results, false positives, issues by severity, "Ready for next wave?" verdict
+1. **Implementation** (parallel)
+   - Dispatch up to 20 implementation subagents in parallel (one per task)
+   - Use direct parallel Task calls (NOT background), wait for all to complete
+   - Each uses `./implementer-prompt.md` template with ULTRATHINK
+   - Each subagent: research → TDD → implement → test → commit
+   - Mark all wave tasks as in_progress, then completed
 
-### Phase 4: Security Review Wave
+2. **Triple Review** (AUTOMATIC, all 3 in parallel)
+   - IMMEDIATELY after implementation completes, dispatch ALL 3 reviewers in parallel
+   - NO manual intervention - this happens automatically
+   - Use direct parallel Task calls (NOT background), wait for all to complete
 
-- Dispatch SINGLE security-reviewer subagent
-- Uses `./security-reviewer-prompt.md` template
-- Checks:
-  1. Multi-tenancy & authorization (every query scoped)
-  2. Injection vulnerabilities (SQL, command, XSS)
-  3. Input validation (all user input validated)
-  4. Authentication & session security
-  5. Secrets & credentials (no hardcoded, no exposed)
-  6. **Gitignore & sensitive files** (sessions, .env, credentials)
-  7. Rate limiting (abuse prevention)
-  8. File & path security (no traversal)
-  9. Error handling (no info disclosure)
-  10. Cryptography (strong algorithms)
-  11. Third-party dependencies
-- **DOES NOT FIX - ONLY REPORTS**
-- Uses **ULTRATHINK**
-- Returns: Risk level, multi-tenancy status, gitignore audit, issues by severity, "Ready for next wave?" verdict
+   **Code Reviewer** (superpowers:code-reviewer subagent):
+   - Uses `superpowers:requesting-code-review` skill
+   - Runs full test suite (`{TEST_COMMAND}` from plan)
+   - Checks for false positive tests
+   - Validates wave dependencies (no conflicts)
+   - Standard code quality review
+   - **DOES NOT FIX - ONLY REPORTS**
+   - Uses **ULTRATHINK**
+   - Returns: Test results, false positives, issues by severity
 
-### Phase 5: Exception & Logging Review Wave
+   **Security Reviewer** (Task subagent):
+   - Uses `./security-reviewer-prompt.md` template
+   - Checks: Multi-tenancy, injection, validation, auth, secrets, gitignore, rate limiting, file security, error handling, crypto, dependencies
+   - **DOES NOT FIX - ONLY REPORTS**
+   - Uses **ULTRATHINK**
+   - Returns: Risk level, multi-tenancy status, gitignore audit, issues by severity
 
-- Dispatch SINGLE exception-logging-reviewer subagent
-- Uses `./exception-logging-reviewer-prompt.md` template
-- Checks:
-  1. **No silent failures** (empty catch blocks are bugs)
-  2. **No swallowed exceptions** (catch with only return/continue)
-  3. **Logging has context** (IDs, operation, input in every log)
-  4. **State updated on error** (status fields reflect failures)
-  5. **Error propagation** (errors bubble up correctly)
-  6. **User-friendly errors** (users see helpful messages, logs have details)
-- **DOES NOT FIX - ONLY REPORTS**
-- Uses **ULTRATHINK**
-- Returns: Silent failure count, missing logging, state issues, "Ready for next wave?" verdict
+   **Exception/Logging Reviewer** (Task subagent):
+   - Uses `./exception-logging-reviewer-prompt.md` template
+   - Checks: No silent failures, no swallowed exceptions, logging has context, state updated on error, error propagation, user-friendly errors
+   - **DOES NOT FIX - ONLY REPORTS**
+   - Uses **ULTRATHINK**
+   - Returns: Silent failure count, missing logging, state issues
 
-### Phase 6: Fix Wave (If Needed)
+3. **Auto-Fix Cycle** (AUTOMATIC if issues found)
+   - Parse ALL three reviewer outputs
+   - If ANY Critical or Important issues found:
+     - AUTOMATICALLY dispatch parallel fixer subagents (max 20, one per issue)
+     - Use direct parallel Task calls (NOT background), wait for all to complete
+     - Each uses `./fixer-prompt.md` template with ULTRATHINK
+     - Each fixer: research → fix ONE specific issue → test → commit
+     - After all fixers complete, AUTOMATICALLY re-run ALL THREE reviews in parallel
+     - Repeat until all reviewers pass OR 3 cycles reached
+   - If 3 fix cycles reached and still failing: HALT and report to user
+   - If only Minor issues OR test failures unrelated to changes: User interruption allowed, otherwise AUTO-FIX
 
-- Only triggered if Critical or Important issues from ANY reviewer
-- Parse ALL three reviewer outputs for actionable issues
-- Dispatch parallel fixer subagents (max 20, one per issue)
-- Each uses `./fixer-prompt.md` template with ULTRATHINK
-- Each fixer: research → fix ONE specific issue → test → commit
-- After all fixers complete, re-run ALL THREE reviews
-- Repeat fix cycle until all reviewers say "Ready for next wave"
-- **Fix cycle limit:** Stop after 3 cycles. If still failing, halt and report to user.
-
-### Phase 7: Next Wave
+### Phase 3: Next Wave
 
 1. Mark wave tasks complete in TodoWrite
 2. Update wave counter
-3. Return to Phase 2 for next wave
+3. AUTOMATICALLY return to Phase 2 for next wave (NO manual intervention)
 
-### Phase 8: Final Review
+### Phase 4: Final Review
 
-After all waves complete, dispatch all three final reviewers:
-1. **Final code reviewer** - Holistic review, full test suite, architecture coherence, cross-wave integration
-2. **Final security reviewer** - Complete security audit of all changes
-3. **Final exception/logging reviewer** - No silent failures in entire codebase
+After all waves complete, AUTOMATICALLY dispatch all three final reviewers IN PARALLEL:
+1. **Final code reviewer** (superpowers:code-reviewer) - Holistic review, full test suite, architecture coherence, cross-wave integration
+2. **Final security reviewer** (Task subagent) - Complete security audit of all changes
+3. **Final exception/logging reviewer** (Task subagent) - No silent failures in entire codebase
 
 All use **ULTRATHINK** and verify all plan requirements met.
 
-### Phase 9: Complete
+### Phase 5: Complete
 
-Output: `Plan complete. All [N] tasks implemented, [X] tests passing, 0 security issues, 0 silent failures. Can I push this?`
+Output: `Plan complete. All [N] tasks implemented, [X] tests passing, 0 security issues, 0 silent failures. Ready to push.`
 
-Wait for user confirmation before pushing.
+## Wave Visualization Format
+
+Display wave structure EXACTLY like this at the start:
+
+```
+Wave 1
+  ├─ Task 1: [task description]
+  ├─ Task 2: [task description]
+  └─ Task 3: [task description]
+
+Wave 2 (depends on Wave 1)
+  ├─ Task 4: [task description]
+  └─ Task 5: [task description]
+
+Wave 3 (depends on Task 4)
+  └─ Task 6: [task description]
+
+Wave 4
+  └─ Task 7: [verification task]
+```
+
+**NO "Waiting for..." or "Dispatching..." messages. Just dispatch and wait.**
 
 ## Flowchart
 
@@ -129,67 +138,68 @@ digraph process {
         "Read plan file" [shape=box];
         "Extract dependency graph (ULTRATHINK)" [shape=box];
         "Build wave schedule" [shape=box];
-        "Create TodoWrite grouped by wave" [shape=box];
+        "Display wave structure" [shape=box];
     }
 
     subgraph cluster_wave {
-        label="2-7. Per Wave";
-        "Dispatch implementation subagents (parallel, max 20)" [shape=box];
-        "Wait for ALL subagents to complete" [shape=box];
-        "Dispatch code reviewer" [shape=box];
-        "Dispatch security reviewer" [shape=box];
-        "Dispatch exception/logging reviewer" [shape=box];
+        label="2-3. Per Wave (FULLY AUTOMATED)";
+        "Dispatch implementers (parallel)" [shape=box];
+        "AUTO: Dispatch 3 reviewers (parallel)" [shape=box style=filled fillcolor=lightblue];
         "Any Critical/Important issues?" [shape=diamond];
-        "Dispatch fixer subagents (parallel, max 20)" [shape=box];
+        "AUTO: Dispatch fixers (parallel)" [shape=box style=filled fillcolor=lightblue];
         "Fix cycles > 3?" [shape=diamond];
-        "STOP - wave failing repeatedly" [shape=box style=filled fillcolor=red fontcolor=white];
+        "HALT - report to user" [shape=box style=filled fillcolor=red fontcolor=white];
+        "AUTO: Re-run 3 reviewers (parallel)" [shape=box style=filled fillcolor=lightblue];
         "Mark wave complete" [shape=box];
     }
 
     "More waves?" [shape=diamond];
-    "Dispatch all 3 final reviewers" [shape=box];
-    "Output: Plan complete. Can I push this?" [shape=box style=filled fillcolor=lightgreen];
+    "AUTO: Dispatch 3 final reviewers (parallel)" [shape=box style=filled fillcolor=lightblue];
+    "Output: Plan complete. Ready to push." [shape=box style=filled fillcolor=lightgreen];
 
     "Read plan file" -> "Extract dependency graph (ULTRATHINK)";
     "Extract dependency graph (ULTRATHINK)" -> "Build wave schedule";
-    "Build wave schedule" -> "Create TodoWrite grouped by wave";
-    "Create TodoWrite grouped by wave" -> "Dispatch implementation subagents (parallel, max 20)";
-    "Dispatch implementation subagents (parallel, max 20)" -> "Wait for ALL subagents to complete";
-    "Wait for ALL subagents to complete" -> "Dispatch code reviewer";
-    "Dispatch code reviewer" -> "Dispatch security reviewer";
-    "Dispatch security reviewer" -> "Dispatch exception/logging reviewer";
-    "Dispatch exception/logging reviewer" -> "Any Critical/Important issues?";
-    "Any Critical/Important issues?" -> "Dispatch fixer subagents (parallel, max 20)" [label="yes"];
+    "Build wave schedule" -> "Display wave structure";
+    "Display wave structure" -> "Dispatch implementers (parallel)";
+    "Dispatch implementers (parallel)" -> "AUTO: Dispatch 3 reviewers (parallel)" [label="immediate"];
+    "AUTO: Dispatch 3 reviewers (parallel)" -> "Any Critical/Important issues?";
+    "Any Critical/Important issues?" -> "AUTO: Dispatch fixers (parallel)" [label="yes"];
     "Any Critical/Important issues?" -> "Mark wave complete" [label="no"];
-    "Dispatch fixer subagents (parallel, max 20)" -> "Fix cycles > 3?";
-    "Fix cycles > 3?" -> "STOP - wave failing repeatedly" [label="yes"];
-    "Fix cycles > 3?" -> "Dispatch code reviewer" [label="no - re-review all"];
+    "AUTO: Dispatch fixers (parallel)" -> "Fix cycles > 3?";
+    "Fix cycles > 3?" -> "HALT - report to user" [label="yes"];
+    "Fix cycles > 3?" -> "AUTO: Re-run 3 reviewers (parallel)" [label="no"];
+    "AUTO: Re-run 3 reviewers (parallel)" -> "Any Critical/Important issues?";
     "Mark wave complete" -> "More waves?";
-    "More waves?" -> "Dispatch implementation subagents (parallel, max 20)" [label="yes"];
-    "More waves?" -> "Dispatch all 3 final reviewers" [label="no"];
-    "Dispatch all 3 final reviewers" -> "Output: Plan complete. Can I push this?";
+    "More waves?" -> "Dispatch implementers (parallel)" [label="yes - auto"];
+    "More waves?" -> "AUTO: Dispatch 3 final reviewers (parallel)" [label="no"];
+    "AUTO: Dispatch 3 final reviewers (parallel)" -> "Output: Plan complete. Ready to push.";
 }
 ```
 
 ## Constraints
 
 - **Max 20 parallel subagents** per wave (implementation or fixers)
-- **Single reviewer per wave** (needs holistic view of all changes)
+- **All 3 reviewers run in parallel** (code, security, exception/logging)
+- **Direct parallel dispatch** (NOT background + wait pattern)
 - **No proceeding with Critical/Important issues** from any reviewer
 - **Minor issues** noted but don't block wave progression
 - **All three reviewers must pass** before next wave
 - **Fix cycle limit: 3** - halt if wave fails repeatedly
+- **FULLY AUTOMATED** - no manual intervention between waves
 
 ## Red Flags - Never Do This
 
+- **Never wait for manual "continue" between waves** - process is fully automated
+- **Never dispatch reviewers sequentially** - all 3 in parallel ALWAYS
+- **Never use background dispatch** - use direct parallel Task calls
 - Never skip review between waves
 - Never proceed with unfixed Critical/Important issues from any reviewer
 - Never dispatch more than 20 parallel subagents
 - Never let reviewers fix issues (they only report)
-- Never push without user confirmation
 - Never ignore silent failures (empty catch blocks)
 - Never ignore gitignore issues (sessions tracked = critical)
 - Never accept logs without context (must have IDs, operation, input)
+- **Never announce "Waiting for..." or "Dispatching..." - just do it**
 
 ## Prompt Templates
 
@@ -206,97 +216,83 @@ You: I'm using Subagent-Driven Development to execute this plan.
 
 [Read plan: docs/plans/user-auth.md]
 [ULTRATHINK: Analyze dependencies]
-[Build wave schedule:]
-  Wave 1: Tasks 1, 2, 3 (independent)
-  Wave 2: Tasks 4, 5 (depend on Wave 1)
-  Wave 3: Task 6 (depends on Task 4)
-[Create TodoWrite grouped by wave]
+
+Wave 1
+  ├─ Task 1: Create User model with org scoping
+  ├─ Task 2: Add AuthController with rate limiting
+  └─ Task 3: Create auth middleware
+
+Wave 2 (depends on Wave 1)
+  ├─ Task 4: Add password reset flow
+  └─ Task 5: Create 2FA implementation
+
+Wave 3 (depends on Task 4)
+  └─ Task 6: Add email verification
 
 === Wave 1 ===
 
-[Read docs/plans/user-auth.md lines 15-45 - Task 1]
-[Read docs/plans/user-auth.md lines 46-78 - Task 2]
-[Read docs/plans/user-auth.md lines 79-110 - Task 3]
+[Dispatch 3 implementers in parallel]
+✓ Task 1: User model - 5 tests passing
+✓ Task 2: Auth controller - 8 tests passing
+✓ Task 3: Middleware - 3 tests passing
 
-Dispatching 3 implementation subagents in parallel:
-  - Subagent A: Task 1 (User model)
-  - Subagent B: Task 2 (Auth controller)
-  - Subagent C: Task 3 (Middleware)
+[AUTO: Dispatch 3 reviewers in parallel - code, security, exception/logging]
 
-[Wait for all to complete...]
+Triple Review Results:
+  Code: 16/16 passing, 1 Important issue
+  Security: Risk High, 3 Critical/High issues
+  Exception: 2 Critical/Important issues
 
-Subagent A: Done, 5 tests passing, committed
-Subagent B: Done, 8 tests passing, committed
-Subagent C: Done, 3 tests passing, committed
+[AUTO: Dispatch 4 fixers in parallel]
+✓ Fixer 1: Added rate limiting
+✓ Fixer 2: Fixed org scoping + added policy
+✓ Fixer 3: Updated .gitignore
+✓ Fixer 4: Fixed catch block + logging context
 
-[Dispatch code reviewer]
-Code Reviewer:
-  Test Results: 16/16 passing
-  False Positives: None detected
-  Dependency Issues: None
-  Issues:
-    Important: Missing rate limiting in auth controller
-  Ready for next wave? No - needs fixes
+[AUTO: Re-review with 3 reviewers in parallel]
+  Code: 18/18 passing, no issues
+  Security: Risk Low, no issues
+  Exception: No silent failures, logging complete
 
-[Dispatch security reviewer]
-Security Reviewer:
-  Risk Level: High
-  Multi-tenancy: Issues Found
-  Gitignore: Missing entries
-  Issues:
-    Critical: User::find($id) without org scoping in controller
-    High: Missing authorization policy on update
-    High: sessions/ directory not in .gitignore
-  Ready for next wave? No - needs fixes
-
-[Dispatch exception/logging reviewer]
-Exception Reviewer:
-  Silent Failures: 1 CRITICAL
-  Issues:
-    Critical: Empty catch block in AuthController:89
-    Important: Log::error without context in UserService:45
-  Ready for next wave? No - has silent failures
-
-[Dispatch 4 fixer subagents in parallel]
-Fixer A: Added rate limiting, tests updated, committed
-Fixer B: Fixed scoping + added policy, tests updated, committed
-Fixer C: Added sessions/ to .gitignore, verified not tracked, committed
-Fixer D: Added logging to catch block + context to Log::error, committed
-
-[Re-review: all 3 reviewers]
-Code Reviewer: 18/18 passing, no issues
-Security Reviewer: Risk Level Low, gitignore complete, no issues
-Exception Reviewer: No silent failures, logging complete
-All ready for next wave? Yes
-
-[Mark Wave 1 complete]
+Wave 1 complete ✓
 
 === Wave 2 ===
 
-[Dispatch 2 implementation subagents in parallel]
-...
+[AUTO: Dispatch 2 implementers in parallel]
+✓ Task 4: Password reset - 12 tests passing
+✓ Task 5: 2FA - 8 tests passing
+
+[AUTO: Dispatch 3 reviewers in parallel]
+  Code: 38/38 passing, no issues
+  Security: Risk Low, no issues
+  Exception: No silent failures
+
+Wave 2 complete ✓
+
+=== Wave 3 ===
+
+[AUTO: Dispatch 1 implementer]
+✓ Task 6: Email verification - 4 tests passing
+
+[AUTO: Dispatch 3 reviewers in parallel]
+  Code: 42/42 passing, no issues
+  Security: Risk Low, no issues
+  Exception: No silent failures
+
+Wave 3 complete ✓
 
 === Final Review ===
 
-[Dispatch all 3 final reviewers]
+[AUTO: Dispatch 3 final reviewers in parallel]
 
-Code Reviewer:
-  Test Results: 42/42 passing
-  All requirements met
-  Architecture coherent
+Code: 42/42 passing, all requirements met, architecture coherent
+Security: Risk Low, multi-tenancy secure, gitignore complete
+Exception: No silent failures, all logs have context
 
-Security Reviewer:
-  Risk Level: Low
-  Multi-tenancy: Secure
-  All queries properly scoped
-  Gitignore: Complete
-  No vulnerabilities detected
-
-Exception/Logging Reviewer:
-  Silent Failures: 0
-  All catch blocks log or rethrow
-  All logs have context
-  State updated on all error paths
-
-Plan complete. All 6 tasks implemented, 42 tests passing, 0 security issues, 0 silent failures. Can I push this?
+Plan complete. All 6 tasks implemented, 42 tests passing, 0 security issues, 0 silent failures. Ready to push.
 ```
+
+**Note:** Entire process runs automatically. Only user interruption points are:
+1. If 3 fix cycles reached without passing reviews (HALT)
+2. If test failures clearly unrelated to changes (user can approve continuation)
+3. Final "Ready to push" confirmation (optional)
