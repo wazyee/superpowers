@@ -102,7 +102,9 @@ All use **ULTRATHINK** and verify all plan requirements met.
 
 ### Phase 5: Complete
 
-Output: `Plan complete. All [N] tasks implemented, [X] tests passing, 0 security issues, 0 silent failures. Ready to push.`
+Output: `Plan complete. All [N] tasks implemented, [X] tests passing, 0 security issues, 0 silent failures.`
+
+**NEVER push automatically. Wait for user to decide.**
 
 ## Wave Visualization Format
 
@@ -189,6 +191,7 @@ digraph process {
 
 ## Red Flags - Never Do This
 
+- **NEVER push automatically** - ALWAYS wait for user confirmation
 - **Never wait for manual "continue" between waves** - process is fully automated
 - **Never dispatch reviewers sequentially** - all 3 in parallel ALWAYS
 - **Never use background dispatch** - use direct parallel Task calls
@@ -292,7 +295,7 @@ Exception: No silent failures, all logs have context
 Plan complete. All 6 tasks implemented, 42 tests passing, 0 security issues, 0 silent failures. Ready to push.
 ```
 
-**Note:** Entire process runs automatically. Only user interruption points are:
-1. If 3 fix cycles reached without passing reviews (HALT)
+**Note:** Entire process runs automatically with NO manual intervention between waves. User stops/decisions only at:
+1. If 3 fix cycles reached without passing reviews (HALT - requires user decision)
 2. If test failures clearly unrelated to changes (user can approve continuation)
-3. Final "Ready to push" confirmation (optional)
+3. After completion (NEVER auto-push - user decides whether to push)
