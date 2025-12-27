@@ -1,5 +1,7 @@
 # Code Quality Reviewer Prompt Template
 
+> **DEPRECATED:** This prompt is deprecated. Use the smart code reviewer from `superpowers:requesting-code-review` instead, which provides comprehensive code quality review with active test execution.
+
 Use this template when dispatching a code quality reviewer subagent.
 
 **Purpose:** Verify implementation is well-built (clean, tested, maintainable)

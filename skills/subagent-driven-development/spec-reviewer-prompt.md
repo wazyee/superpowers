@@ -1,5 +1,7 @@
 # Spec Compliance Reviewer Prompt Template
 
+> **DEPRECATED:** This prompt is deprecated. Use the smart code reviewer from `superpowers:requesting-code-review` instead, which includes test execution and false positive detection.
+
 Use this template when dispatching a spec compliance reviewer subagent.
 
 **Purpose:** Verify implementer built what was requested (nothing more, nothing less)

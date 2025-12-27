@@ -1,6 +1,6 @@
 ---
 name: writing-plans
-description: Use when you have a spec or requirements for a multi-step task, before touching code
+description: Use when design is complete and you need detailed implementation tasks with dependency tracking and error handling - creates comprehensive implementation plans with exact file paths, complete code examples, dependency graphs, error handling requirements, and verification steps for wave-based parallel execution
 ---
 
 # Writing Plans
@@ -33,13 +33,15 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 ```markdown
 # [Feature Name] Implementation Plan
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
+> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development to implement this plan with parallel wave execution.
 
 **Goal:** [One sentence describing what this builds]
 
 **Architecture:** [2-3 sentences about approach]
 
 **Tech Stack:** [Key technologies/libraries]
+
+**Test Command:** `[Command to run full test suite, e.g., php artisan test]`
 
 ---
 ```
@@ -48,6 +50,14 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 
 ```markdown
 ### Task N: [Component Name]
+
+**Dependencies:** [Task numbers this depends on, or "none" if independent]
+**Conflicts with:** [Files/resources shared with other tasks, or "none"]
+
+**Error Handling:**
+- On failure: [What status/state to set, what to log]
+- User message: [User-friendly error message]
+- Logging: [What context to include: IDs, operation, input]
 
 **Files:**
 - Create: `exact/path/to/file.py`
@@ -93,6 +103,9 @@ git commit -m "feat: add specific feature"
 - Exact commands with expected output
 - Reference relevant skills with @ syntax
 - DRY, YAGNI, TDD, frequent commits
+- **Dependencies and Conflicts on EVERY task**
+- **Error Handling on tasks that can fail**
+- **Test Command in plan header**
 
 ## Execution Handoff
 

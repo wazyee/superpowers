@@ -1,6 +1,6 @@
 ---
 name: requesting-code-review
-description: Use when completing tasks, implementing major features, or before merging to verify work meets requirements
+description: Use when completing tasks, implementing major features, or between waves in parallel execution - dispatches superpowers:code-reviewer subagent that runs full test suite, checks for false positives, verifies wave dependencies, and reviews implementation against plan
 ---
 
 # Requesting Code Review

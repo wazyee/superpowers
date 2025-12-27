@@ -52,3 +52,51 @@ Start by understanding the current project context, then ask questions one at a 
 - **Explore alternatives** - Always propose 2-3 approaches before settling
 - **Incremental validation** - Present design in sections, validate each
 - **Be flexible** - Go back and clarify when something doesn't make sense
+
+## Investigation Workflow
+
+**Before brainstorming ideas, get ground truth about current implementation.**
+
+### Phase 1: Initial Investigation
+
+Dispatch investigation subagent to get broad overview:
+
+```
+Task tool (general-purpose):
+  description: "Investigate: [feature area] current implementation"
+  prompt: [Use ./investigation-prompt.md template]
+```
+
+**Investigator checks:**
+- Actual database schema (query `information_schema`, not just migrations)
+- Model code (fillable, casts, relationships, enums)
+- Controllers (entry points, validation, dispatched jobs)
+- Jobs & Services (queue logic, state transitions)
+- Frontend (TypeScript types, components, state)
+
+**Investigator reports:**
+- Current implementation summary
+- Database schema tables
+- Enum/status values in use
+- Key files with line ranges
+- Data flow step-by-step
+- **Areas needing deeper investigation**
+
+### Phase 2: Deep Investigation (If Needed)
+
+If initial investigation flags unclear areas, dispatch specific investigation subagents in parallel.
+
+### Phase 3: Brainstorming
+
+**Now that you have ground truth, brainstorm solutions.**
+
+Use investigation findings to:
+- Identify real constraints (not assumed)
+- Spot inconsistencies to fix
+- Propose ideas that fit existing architecture
+- Avoid solutions that conflict with actual implementation
+
+**Template for initial investigation:**
+
+Use prompt template: `./investigation-prompt.md`
+
