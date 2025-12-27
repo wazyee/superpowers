@@ -1,13 +1,12 @@
 {
   "name": "superpowers",
-  "description": "Core skills library for Claude Code: TDD, debugging, collaboration patterns, and proven techniques",
-  "version": "4.0.3",
+  "description": "Wave-based execution fork: parallel subagent waves, triple review (code/security/exceptions), zero silent failures",
+  "version": "4.0.3-wazyee",
   "author": {
-    "name": "Jesse Vincent",
-    "email": "jesse@fsck.com"
+    "name": "wazyee (forked from Jesse Vincent)"
   },
-  "homepage": "https://github.com/obra/superpowers",
-  "repository": "https://github.com/obra/superpowers",
+  "homepage": "https://github.com/wazyee/superpowers",
+  "repository": "https://github.com/wazyee/superpowers",
   "license": "MIT",
-  "keywords": ["skills", "tdd", "debugging", "collaboration", "best-practices", "workflows"]
+  "keywords": ["skills", "tdd", "debugging", "collaboration", "best-practices", "workflows", "wave-execution", "parallel", "security-review"]
 }
