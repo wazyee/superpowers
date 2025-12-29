@@ -8,7 +8,7 @@
     {
       "name": "superpowers",
       "description": "Wave-based execution fork: parallel subagent waves, triple review (code/security/exceptions), zero silent failures",
-      "version": "4.0.3-wazyee",
+      "version": "4.1.2-wazyee",
       "source": "./",
       "author": {
         "name": "wazyee (forked from Jesse Vincent)"
